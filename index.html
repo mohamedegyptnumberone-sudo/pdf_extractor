@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF & Text Extractor | Extract Text from PDFs Easily</title>
+    <meta name="description" content="Extract text from PDFs and text files easily. Get text, links, and preview PDFs. 100% browser-based, no data uploads.">
+    <meta name="author" content="PDF & Text Extractor">
+    <meta name="keywords" content="PDF text extractor, extract text from PDF, PDF to text, text extraction tool, link extraction, PDF preview">
+    
+    <!-- PDF.js from CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- External CSS -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Inline styles for quick loading -->
+    <style>
+        /* Section Navigation Bar */
+        .section-nav {
+            position: sticky;
+            top: 70px;
+            background: white;
+            border-bottom: 1px solid #e2e8f0;
+            z-index: 900;
+            padding: 10px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .section-nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        .section-nav-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+        
+        .section-nav-links::-webkit-scrollbar {
+            height: 4px;
+        }
+        
+        .section-nav-links::-webkit-scrollbar-thumb {
+            background: #4361ee;
+            border-radius: 2px;
+        }
+        
+        .section-nav-links a {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #f8fafc;
+            border-radius: 20px;
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .section-nav-links a:hover {
+            background: #4361ee;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.2);
+        }
+        
+        .section-nav-links a.active {
+            background: #4361ee;
+            color: white;
+            border-color: #4361ee;
+        }
+        
+        .section-nav-links a i {
+            font-size: 1rem;
+        }
+        
+        /* Scrollable Container Classes */
+        .scrollable {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .scrollable-x {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        /* Make sure all content containers are scrollable */
+        .links-container,
+        .text-area,
+        #fullPdfPreview,
+        .image-container,
+        .metadata-display,
+        .all-text-container .text-area {
+            overflow-y: auto !important;
+            scrollbar-width: thin;
+        }
+        
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #4361ee;
+            border-radius: 4px;
+            border: 2px solid #f1f5f9;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3a56d4;
+        }
+        
+        /* For Firefox */
+        * {
+            scrollbar-color: #4361ee #f1f5f9;
+            scrollbar-width: thin;
+        }
+        
+        @media (max-width: 768px) {
+            .section-nav {
+                top: 60px;
+            }
+            
+            .section-nav-links {
+                gap: 10px;
+            }
+            
+            .section-nav-links a {
+                padding: 6px 12px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header & Navigation -->
+    <header class="site-header">
+        <nav class="main-nav">
+            <div class="nav-container">
+                <a href="#home" class="nav-brand">
+                    <i class="fas fa-file-pdf logo-icon"></i>
+                    <span>PDF & Text Extractor</span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="#home" class="active"><i class="fas fa-home"></i> Home</a></li>
+                    <li><a href="#how-to-use"><i class="fas fa-graduation-cap"></i> How to Use</a></li>
+                    <li><a href="#features"><i class="fas fa-star"></i> Features</a></li>
+                    <li><a href="#contact"><i class="fas fa-phone-alt"></i> Contact</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Section Navigation Bar -->
+    <div class="section-nav">
+        <div class="section-nav-container">
+            <ul class="section-nav-links">
+                <li><a href="#text-extraction" class="section-nav-link"><i class="fas fa-file-alt"></i> Text Extraction</a></li>
+                <li><a href="#link-extraction" class="section-nav-link"><i class="fas fa-link"></i> Link Extraction</a></li>
+                <li><a href="#pdf-preview" class="section-nav-link"><i class="fas fa-eye"></i> PDF Preview</a></li>
+                <li><a href="#image-extraction" class="section-nav-link"><i class="fas fa-image"></i> Image Extraction</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero-section" id="home">
+        <div class="hero-content">
+            <div class="hero-text">
+                <h1><span class="gradient-text">Extract Text from PDFs</span> Instantly</h1>
+                <p class="hero-description">Advanced browser-based tool for extracting text, links, images, and previewing PDF files. 100% secure & private - no data leaves your computer.</p>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <i class="fas fa-bolt"></i>
+                        <span>Fast Processing</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-lock"></i>
+                        <span>100% Secure</span>
+                    </div>
+                    <div class="stat">
+                        <i class="fas fa-desktop"></i>
+                        <span>Browser-Based</span>
+                    </div>
+                </div>
+                <a href="#upload-section" class="hero-cta-btn">
+                    <i class="fas fa-rocket"></i>
+                    Start Extracting Now
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Features Section -->
+        <section id="features" class="section-features">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-star title-icon"></i>
+                    Powerful Features
+                </h2>
+                <p class="section-subtitle">Everything you need for PDF and text processing</p>
+            </div>
+            
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>Text Extraction</h3>
+                    <p>Extract clean text from any PDF or text file with perfect formatting and easy navigation between chunks.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h3>Link Extraction</h3>
+                    <p>Automatically find and extract all URLs from your documents. Great for research and gathering resources.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <h3>Image Extraction</h3>
+                    <p>Extract all images from PDF files with one click. Download individual images or all at once.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-eye"></i>
+                    </div>
+                    <h3>PDF Preview</h3>
+                    <p>View PDF files directly in your browser. Navigate pages, zoom, and see the exact layout of your documents.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- How to Use Section -->
+        <section id="how-to-use" class="section-steps">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-graduation-cap title-icon"></i>
+                    How to Use
+                </h2>
+                <p class="section-subtitle">Simple steps to extract content from your documents</p>
+            </div>
+            
+            <div class="steps-container">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3>Upload Document</h3>
+                        <p>Click the upload area or drag & drop your PDF or text file. All processing happens locally.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3>Extract Content</h3>
+                        <p>Our tool automatically extracts text, links, and images from your document instantly.</p>
+                    </div>
+                </div>
+                
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3>View & Download</h3>
+                        <p>Navigate through extracted content, preview PDFs, and download what you need.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Upload Section -->
+        <section id="upload-section" class="section-upload">
+            <div class="container">
+                <!-- Main Upload Card -->
+                <div class="card upload-hero-card">
+                    <div class="card-header">
+                        <h1 class="card-title">
+                            <i class="fas fa-rocket title-icon"></i>
+                            Start Extracting Text Now
+                        </h1>
+                    </div>
+                    <div class="card-body">
+                        <label for="fileInput" class="file-upload-area">
+                            <div class="upload-icon">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <h3>Upload Your Document</h3>
+                            <p>Drag & drop or click to upload PDF or TXT files</p>
+                            <div class="upload-formats">
+                                <span class="format-badge"><i class="fas fa-file-pdf"></i> PDF</span>
+                                <span class="format-badge"><i class="fas fa-file-alt"></i> TXT</span>
+                            </div>
+                            <p class="privacy-note">
+                                <i class="fas fa-user-shield"></i>
+                                <strong>Privacy Guaranteed:</strong> All processing happens in your browser. No data is uploaded to any server.
+                            </p>
+                            <input type="file" id="fileInput" class="file-input" accept=".txt,.pdf" />
+                            <button class="btn btn-primary upload-trigger-btn">
+                                <i class="fas fa-folder-open"></i>
+                                Choose File to Upload
+                            </button>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Processing Cards -->
+                <div class="processing-grid">
+                    <!-- Text Processing -->
+                    <div id="text-extraction" class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-file-alt title-icon"></i>
+                                Text Extraction
+                            </h2>
+                            <span id="chunkCounter" class="counter"><i class="fas fa-layer-group"></i> --/--</span>
+                        </div>
+                        <div class="card-body">
+                            <textarea id="chunkText" class="text-area scrollable" placeholder="Extracted text will appear here... Upload a PDF or text file to begin." readonly></textarea>
+                            
+                            <div class="control-group">
+                                <button id="prevBtn" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                    Previous
+                                </button>
+                                <button id="nextBtn" class="btn btn-secondary" disabled>
+                                    Next
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                                
+                                <div class="goto-container">
+                                    <span>Go to chunk:</span>
+                                    <input type="number" id="gotoChunkInput" min="1" />
+                                    <button id="gotoChunkBtn" class="btn btn-secondary" disabled>
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="control-group">
+                                <button id="copyBtn" class="btn btn-success" disabled>
+                                    <i class="fas fa-copy"></i>
+                                    Copy Text
+                                </button>
+                                <button id="showAllBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-file-alt"></i>
+                                    Show All Text
+                                </button>
+                                <button id="downloadTextBtn" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-download"></i>
+                                    Download Text
+                                </button>
+                            </div>
+
+                            <!-- All Text Area (hidden by default) -->
+                            <div id="allTextContainer" class="all-text-container" style="display:none; margin-top: 25px;">
+                                <div class="card-header" style="background: #e2e8f0;">
+                                    <h3 class="card-title">
+                                        <i class="fas fa-file-alt"></i>
+                                        All Extracted Text (All Chunks)
+                                    </h3>
+                                    <button id="closeAllTextBtn" class="btn btn-secondary">
+                                        <i class="fas fa-times"></i>
+                                        Close
+                                    </button>
+                                </div>
+                                <textarea id="allTextArea" class="text-area scrollable" placeholder="All extracted text chunks will appear here..." readonly style="min-height: 400px; margin-top: 0;"></textarea>
+                                <div class="control-group" style="margin-top: 15px;">
+                                    <button id="copyAllBtn" class="btn btn-success">
+                                        <i class="fas fa-copy"></i>
+                                        Copy All Text
+                                    </button>
+                                    <button id="downloadAllBtn" class="btn btn-primary">
+                                        <i class="fas fa-download"></i>
+                                        Download All
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Extracted Links -->
+                    <div id="link-extraction" class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-link title-icon"></i>
+                                Link Extraction
+                            </h2>
+                            <span id="linksCount" class="counter"><i class="fas fa-hashtag"></i> 0 found</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="linksList" class="links-container scrollable">
+                                <div class="empty-state">
+                                    <i class="fas fa-link empty-icon"></i>
+                                    <h3>No Links Yet</h3>
+                                    <p>Upload a PDF or text file to extract links</p>
+                                </div>
+                            </div>
+                            <div class="control-group" style="margin-top: 20px;">
+                                <button id="copyAllLinksBtn" class="btn btn-success" disabled>
+                                    <i class="fas fa-copy"></i>
+                                    Copy All Links
+                                </button>
+                                <button id="exportLinksBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-download"></i>
+                                    Export Links
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PDF Preview -->
+                    <div id="pdf-preview" class="card full-width-card">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-eye title-icon"></i>
+                                PDF Preview
+                            </h2>
+                            <span id="pageCounter" class="counter"><i class="fas fa-file"></i> --/--</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="fullPdfPreview" class="scrollable">
+                                <div class="empty-state">
+                                    <i class="fas fa-file-pdf empty-icon"></i>
+                                    <h3>PDF Preview Ready</h3>
+                                    <p>Upload a PDF file to see the preview here</p>
+                                    <p class="empty-subtext">
+                                        Supports all PDF formats • No size limits • Instant preview
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="pdf-controls">
+                                <button id="prevPageBtn" class="btn btn-secondary" disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                    Previous Page
+                                </button>
+                                <button id="nextPageBtn" class="btn btn-secondary" disabled>
+                                    Next Page
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                                
+                                <div class="goto-container">
+                                    <span>Go to page:</span>
+                                    <input type="number" id="gotoPageInput" min="1" />
+                                    <button id="gotoPageBtn" class="btn btn-secondary" disabled>
+                                        <i class="fas fa-arrow-right"></i>
+                                    </button>
+                                </div>
+
+                                <button id="downloadPageBtn" class="btn btn-success" disabled>
+                                    <i class="fas fa-download"></i>
+                                    Download Page
+                                </button>
+                                <button id="showMetadataBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-info-circle"></i>
+                                    Show Metadata
+                                </button>
+                            </div>
+
+                            <pre id="pdfMetadata" class="metadata-display scrollable" style="display:none;"></pre>
+                        </div>
+                    </div>
+
+                    <!-- Image Extraction -->
+                    <div id="image-extraction" class="card full-width-card" style="margin-top: 30px;">
+                        <div class="card-header">
+                            <h2 class="card-title">
+                                <i class="fas fa-image title-icon"></i>
+                                Image Extraction
+                            </h2>
+                            <span id="imagesCount" class="counter"><i class="fas fa-image"></i> 0 found</span>
+                        </div>
+                        <div class="card-body">
+                            <div id="imagesList" class="image-container scrollable">
+                                <div class="empty-state">
+                                    <i class="fas fa-image empty-icon"></i>
+                                    <h3>No Images Yet</h3>
+                                    <p>Upload a PDF file to extract images</p>
+                                    <p class="empty-subtext">
+                                        Extract JPG, PNG, and other image formats from PDF files
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="control-group" style="margin-top: 20px;">
+                                <button id="extractImagesBtn" class="btn btn-primary" disabled>
+                                    <i class="fas fa-image"></i>
+                                    Extract Images
+                                </button>
+                                <button id="downloadAllImagesBtn" class="btn btn-success" disabled>
+                                    <i class="fas fa-download"></i>
+                                    Download All Images
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Contact Section -->
+        <section id="contact" class="section-contact">
+            <div class="contact-content">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-phone-alt title-icon"></i>
+                        Contact & Support
+                    </h2>
+                    <p class="section-subtitle">Have questions or need help? Get in touch with us</p>
+                </div>
+                
+                <div class="contact-info">
+                    <a href="https://wa.me/201117057944" target="_blank" class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-whatsapp"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>WhatsApp</h3>
+                            <p>+20 11 1705 7944</p>
+                        </div>
+                        <i class="fas fa-external-link-alt contact-link"></i>
+                    </a>
+                    
+                    <a href="tel:01117057944" class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Phone Call</h3>
+                            <p>011 1705 7944</p>
+                        </div>
+                        <i class="fas fa-external-link-alt contact-link"></i>
+                    </a>
+                    
+                    <a href="https://www.facebook.com/mohamed.mostafa.alshoqiry/" target="_blank" class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fab fa-facebook"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Facebook Page</h3>
+                            <p>Mohamed Mostafa Alshoqiry</p>
+                        </div>
+                        <i class="fas fa-external-link-alt contact-link"></i>
+                    </a>
+                    
+                    <a href="mailto:mohamedegyptnumberone@gmail.com" class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="contact-details">
+                            <h3>Email</h3>
+                            <p>mohamedegyptnumberone@gmail.com</p>
+                        </div>
+                        <i class="fas fa-external-link-alt contact-link"></i>
+                    </a>
+                </div>
+                
+                <p class="contact-footer">
+                    We're here to help you get the most out of our text extraction tool. Contact us anytime!
+                </p>
+            </div>
+        </section>
+    </main>
+
+    <!-- Floating Upload Button -->
+    <div class="floating-upload-btn">
+        <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span>Upload File</span>
+        </button>
+    </div>
+
+    <!-- Upload Loading Overlay -->
+    <div class="upload-loading-overlay">
+        <div class="upload-loading-content">
+            <div class="upload-loading-spinner"></div>
+            <h3 class="upload-loading-text">Processing Your File</h3>
+            <p class="upload-loading-subtext">Please wait while we extract text and prepare your document...</p>
+            <div class="upload-stats">
+                <div class="stat-item">
+                    <div class="stat-value upload-file-type">PDF</div>
+                    <div class="stat-label">File Type</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value upload-file-size">0 KB</div>
+                    <div class="stat-label">File Size</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value upload-progress">0%</div>
+                    <div class="stat-label">Progress</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- External JavaScript -->
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+    <script src="script.js"></script>
+</body>
+</html>
